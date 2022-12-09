@@ -41,7 +41,7 @@ class DayFourTest {
   @Test
   fun testPartTwoSolution() {
     assertEquals(
-      413,
+      806,
       DayFour.findAnyOverlap(readStringsFromFile(SRC_DIR, "DayFour.txt"))
     )
   }
