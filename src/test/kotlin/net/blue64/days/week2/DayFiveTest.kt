@@ -29,5 +29,4 @@ class DayFiveTest {
       DayFive.rearrangeCrates(readStringsFromFile(SRC_DIR, "DayFive.txt"))
     )
   }
-
 }

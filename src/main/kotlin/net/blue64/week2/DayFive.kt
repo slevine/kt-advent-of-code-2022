@@ -34,7 +34,6 @@ object DayFive {
     }
 
     fun createStacks(stacks: List<String>, size: Int): Stacks {
-
       val s = createEmptyStacks(size)
       stacks.forEach {
         it.chunked(STACK_SIZE).forEachIndexed { i, c ->
