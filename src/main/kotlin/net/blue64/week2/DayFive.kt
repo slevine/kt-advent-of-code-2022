@@ -11,11 +11,15 @@ fun <T> List<T>.split() = Pair(take(1), drop(1))
 typealias Moves = List<Move>
 typealias Stacks = List<ArrayDeque<Char>>
 
+const val STACK_SIZE = 4
+const val MOVE_NUM = 1
+const val SRC_NUM = 3
+
 data class Move(val num: Int, val src: Int, val dest: Int) {
   companion object Factory {
     fun fromString(moveString: String): Move {
       val moveChars = moveString.split(" ")
-      return Move(moveChars[1].toInt(), moveChars[3].toInt(), moveChars.last().toInt())
+      return Move(moveChars[MOVE_NUM].toInt(), moveChars[SRC_NUM].toInt(), moveChars.last().toInt())
     }
   }
 }
@@ -30,9 +34,10 @@ object DayFive {
     }
 
     fun createStacks(stacks: List<String>, size: Int): Stacks {
+
       val s = createEmptyStacks(size)
       stacks.forEach {
-        it.chunked(4).forEachIndexed { i, c ->
+        it.chunked(STACK_SIZE).forEachIndexed { i, c ->
           if (c.isNotBlank()) s[i].addLast(c.toCharArray()[1])
         }
       }
