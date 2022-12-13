@@ -3,44 +3,37 @@ package net.blue64.week2
 /**
  * Created by IntelliJ IDEA.
  * Author: Steve Levine
- * Date: 12/9/22
+ * Date: 12/11/22
  */
-
-fun <T> List<T>.split() = Pair(take(1), drop(1))
-
-typealias Moves = List<Move>
-typealias Stacks = List<ArrayDeque<Char>>
-
-const val STACK_SIZE = 4
-const val MOVE_NUM = 1
-const val SRC_NUM = 3
 
 data class Move(val num: Int, val src: Int, val dest: Int) {
   companion object Factory {
     fun fromString(moveString: String): Move {
-      val moveChars = moveString.split(" ")
-      return Move(moveChars[MOVE_NUM].toInt(), moveChars[SRC_NUM].toInt(), moveChars.last().toInt())
+      val moveInts = moveString.split(" ").filter {
+        it.toCharArray()[0].isDigit()
+      }.map { it.toInt() }
+      return Move(moveInts[0], moveInts[1], moveInts[2])
     }
   }
 }
 
+typealias Moves = List<Move>
+typealias Stacks = List<ArrayDeque<Char>>
+
 object DayFive {
+  private const val STACK_CHAR_SIZE = 4
 
   private fun parseInput(input: List<String>): Pair<Stacks, Moves> {
-    fun createEmptyStacks(size: Int): Stacks {
-      return (0 until size).map {
-        ArrayDeque()
-      }
-    }
+    fun createEmptyStacks(size: Int): Stacks = (0 until size).map { ArrayDeque() }
 
-    fun createStacks(stacks: List<String>, size: Int): Stacks {
-      val s = createEmptyStacks(size)
-      stacks.forEach {
-        it.chunked(STACK_SIZE).forEachIndexed { i, c ->
-          if (c.isNotBlank()) s[i].addLast(c.toCharArray()[1])
+    fun createStacks(stackStrings: List<String>, size: Int): Stacks {
+      val stacks = createEmptyStacks(size)
+      stackStrings.forEach {
+        it.chunked(STACK_CHAR_SIZE).forEachIndexed { i, c ->
+          if (c.isNotBlank()) stacks[i].addLast(c.toCharArray()[1])
         }
       }
-      return s
+      return stacks
     }
 
     fun parseMovesAndBoard(
@@ -48,41 +41,46 @@ object DayFive {
       stacks: List<String>,
       moves: List<Move>,
       size: Int
-    ): Triple<List<String>, List<Move>, Int> {
-      val (x, xs) = input.split()
+    ): Triple<List<String>, Moves, Int> {
+      val (x, xs) = Pair(input.take(1), input.drop(1))
       return when {
-        xs.isEmpty() -> return Triple(stacks, moves + Move.fromString(x[0]), size)
-        x[0].startsWith("move") -> parseMovesAndBoard(
-          xs,
-          stacks,
-          moves + Move.fromString(x[0]),
-          size
-        )
-        x[0].isBlank() -> parseMovesAndBoard(xs, stacks, moves, size)
-        x[0].startsWith(" 1") -> {
-          parseMovesAndBoard(xs, stacks, moves, x[0].split(" ").last().toInt())
-        }
-
-        else -> parseMovesAndBoard(xs, stacks + x[0], moves, size)
+        xs.isEmpty() ->
+          return Triple(stacks, moves + Move.fromString(x[0]), size)
+        x.first().startsWith("move") ->
+          parseMovesAndBoard(xs, stacks, moves + Move.fromString(x[0]), size)
+        x.first().isBlank() ->
+          parseMovesAndBoard(xs, stacks, moves, size)
+        x.first().startsWith(" 1") ->
+          parseMovesAndBoard(xs, stacks, moves, x.first().split(" ").last().toInt())
+        else ->
+          parseMovesAndBoard(xs, stacks + x.first(), moves, size)
       }
     }
 
-    val (b, m, s) = parseMovesAndBoard(input, listOf(), listOf(), 0)
-    return Pair(createStacks(b, s), m)
+    val (stacks, moves, size) = parseMovesAndBoard(input, listOf(), listOf(), 0)
+    return Pair(createStacks(stacks, size), moves)
   }
 
   fun rearrangeCrates(input: List<String>): List<Char> {
     val (board, moves) = parseInput(input)
-    println(board)
     moves.forEach { move ->
-      println(move)
-      val crates = board[move.src - 1].take(move.num)
-      crates.forEach {
-        board[move.dest - 1].addFirst(it)
+      repeat(move.num) {
+        val crates = board[move.src - 1].removeFirst()
+        board[move.dest - 1].addFirst(crates)
       }
-      board[move.src - 1].removeAll(crates)
-      println(board)
     }
-    return board.map { it.getOrElse(0) { ' ' } }.filter { it != ' ' }
+    return board.map { it.first() }
+  }
+
+  fun rearrangeMultipleCrates(input: List<String>): List<Char> {
+    val (board, moves) = parseInput(input)
+    moves.forEach { move ->
+      val crates = board[move.src - 1].take(move.num)
+      repeat(move.num) {
+        board[move.src - 1].removeFirst()
+      }
+      crates.reversed().forEach { board[move.dest - 1].addFirst(it) }
+    }
+    return board.map { it.first() }
   }
 }
